@@ -29,4 +29,18 @@ contract Campaign {
         require(msg.value > minimumContribution);
         approvers.push(msg.sender);
     }
+
+    function createRequest(
+        string memory _description,
+        uint256 _value,
+        address _recepient
+    ) public restricted {
+        Request memory request = Request({
+            description: _description,
+            value: _value,
+            recepient: _recepient,
+            complete: false
+        });
+        requests.push(request);
+    }
 }
