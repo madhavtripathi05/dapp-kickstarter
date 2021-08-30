@@ -4,10 +4,12 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract Campaign {
     struct Request {
-        string description;
-        uint256 value;
         address recepient;
         bool complete;
+        string description;
+        uint256 value;
+        uint256 approvalCount;
+        mapping(address => bool) approvals;
     }
 
     modifier restricted() {
@@ -18,7 +20,7 @@ contract Campaign {
     Request[] public requests;
     address public manager;
     uint256 public minimumContribution;
-    address[] public approvers;
+    mapping(address => bool) public approvers;
 
     constructor(uint256 min) {
         minimumContribution = min;
@@ -27,20 +29,32 @@ contract Campaign {
 
     function contribute() public payable {
         require(msg.value > minimumContribution);
-        approvers.push(msg.sender);
+        approvers[msg.sender] = true;
     }
 
     function createRequest(
-        string memory _description,
-        uint256 _value,
-        address _recepient
+        string memory description,
+        uint256 value,
+        address recipient
     ) public restricted {
-        Request memory request = Request({
-            description: _description,
-            value: _value,
-            recepient: _recepient,
-            complete: false
-        });
-        requests.push(request);
+        uint256 idx = requests.length;
+        // A way to create a new array element:
+        requests.push();
+        Request storage newRequest = requests[idx];
+        // Alternative:
+        // Request storage newRequest = requests.push();
+        newRequest.description = description;
+        newRequest.value = value;
+        newRequest.recepient = payable(recipient);
+        newRequest.complete = false;
+        newRequest.approvalCount = 0;
+    }
+
+    function approveRequest(uint256 requestId) public {
+        Request storage currentRequest = requests[requestId];
+        require(approvers[msg.sender]);
+        require(!currentRequest.approvals[msg.sender]);
+        currentRequest.approvals[msg.sender] = true;
+        currentRequest.approvalCount++;
     }
 }
