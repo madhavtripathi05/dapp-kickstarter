@@ -2,9 +2,29 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
+contract CampaignFactory {
+    address[] public deployedCampaigns;
+
+    function createCampaign(
+        uint256 minimumAmount,
+        string memory name,
+        string memory description,
+        string memory imageUrl
+    ) public {
+        address newCampaign = address(
+            new Campaign(minimumAmount, name, description, imageUrl, msg.sender)
+        );
+        deployedCampaigns.push(newCampaign);
+    }
+
+    function getDeployedCampaigns() public view returns (address[] memory) {
+        return deployedCampaigns;
+    }
+}
+
 contract Campaign {
     struct Request {
-        address recepient;
+        address payable recepient;
         bool complete;
         string description;
         uint256 value;
@@ -17,19 +37,33 @@ contract Campaign {
         _;
     }
 
-    Request[] public requests;
     address public manager;
-    uint256 public minimumContribution;
     mapping(address => bool) public approvers;
+    uint256 public minimumContribution;
+    uint256 public approversCount;
+    string campaignName;
+    string campaignDescription;
+    string campaignImageUrl;
+    Request[] public requests;
 
-    constructor(uint256 min) {
-        minimumContribution = min;
-        manager = msg.sender;
+    constructor(
+        uint256 minimumAmount,
+        string memory name,
+        string memory description,
+        string memory imageUrl,
+        address campaignCreatorAddress
+    ) {
+        manager = campaignCreatorAddress;
+        minimumContribution = minimumAmount;
+        campaignName = name;
+        campaignDescription = description;
+        campaignImageUrl = imageUrl;
     }
 
     function contribute() public payable {
         require(msg.value > minimumContribution);
         approvers[msg.sender] = true;
+        approversCount++;
     }
 
     function createRequest(
@@ -56,5 +90,13 @@ contract Campaign {
         require(!currentRequest.approvals[msg.sender]);
         currentRequest.approvals[msg.sender] = true;
         currentRequest.approvalCount++;
+    }
+
+    function finalizeRequest(uint256 requestId) public restricted {
+        Request storage currentRequest = requests[requestId];
+        require(!currentRequest.complete);
+        require(currentRequest.approvalCount >= (approversCount / 2));
+        currentRequest.recepient.transfer(currentRequest.value);
+        currentRequest.complete = true;
     }
 }
