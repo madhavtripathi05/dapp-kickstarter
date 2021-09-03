@@ -39,12 +39,12 @@ contract Campaign {
 
     address public manager;
     mapping(address => bool) public approvers;
-    uint256 public minimumContribution;
-    uint256 public approversCount;
-    string campaignName;
+    Request[] public requests;
     string campaignDescription;
     string campaignImageUrl;
-    Request[] public requests;
+    string campaignName;
+    uint256 public approversCount;
+    uint256 public minimumContribution;
 
     constructor(
         uint256 minimumAmount,
