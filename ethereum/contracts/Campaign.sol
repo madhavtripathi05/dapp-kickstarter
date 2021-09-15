@@ -24,27 +24,23 @@ contract CampaignFactory {
 
 contract Campaign {
     struct Request {
-        address payable recepient;
-        bool complete;
         string description;
         uint256 value;
+        address payable recipient;
+        bool isComplete;
         uint256 approvalCount;
+        uint256 donorsCount;
         mapping(address => bool) approvals;
     }
-
-    modifier restricted() {
-        require(msg.sender == manager);
-        _;
-    }
-
     address public manager;
-    mapping(address => bool) public approvers;
-    Request[] public requests;
+    uint256 public minimumContribution;
+    string campaignName;
     string campaignDescription;
     string campaignImageUrl;
-    string campaignName;
+    mapping(address => bool) public approvers;
+    Request[] public requests;
+    uint256 numRequests;
     uint256 public approversCount;
-    uint256 public minimumContribution;
 
     constructor(
         uint256 minimumAmount,
@@ -61,7 +57,7 @@ contract Campaign {
     }
 
     function contribute() public payable {
-        require(msg.value > minimumContribution);
+        require(msg.value >= minimumContribution);
         approvers[msg.sender] = true;
         approversCount++;
     }
@@ -72,15 +68,12 @@ contract Campaign {
         address recipient
     ) public restricted {
         uint256 idx = requests.length;
-        // A way to create a new array element:
         requests.push();
         Request storage newRequest = requests[idx];
-        // Alternative:
-        // Request storage newRequest = requests.push();
         newRequest.description = description;
         newRequest.value = value;
-        newRequest.recepient = payable(recipient);
-        newRequest.complete = false;
+        newRequest.recipient = payable(recipient);
+        newRequest.isComplete = false;
         newRequest.approvalCount = 0;
     }
 
@@ -94,9 +87,40 @@ contract Campaign {
 
     function finalizeRequest(uint256 requestId) public restricted {
         Request storage currentRequest = requests[requestId];
-        require(!currentRequest.complete);
+        require(!currentRequest.isComplete);
         require(currentRequest.approvalCount >= (approversCount / 2));
-        currentRequest.recepient.transfer(currentRequest.value);
-        currentRequest.complete = true;
+        currentRequest.recipient.transfer(currentRequest.value);
+        currentRequest.isComplete = true;
+    }
+
+    function getSummary()
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            address,
+            string memory
+        )
+    {
+        return (
+            minimumContribution,
+            address(this).balance,
+            requests.length,
+            approversCount,
+            manager,
+            campaignImageUrl
+        );
+    }
+
+    function getRequestsCount() public view returns (uint256) {
+        return requests.length;
+    }
+
+    modifier restricted() {
+        require(msg.sender == manager);
+        _;
     }
 }
