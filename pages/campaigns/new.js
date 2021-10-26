@@ -10,7 +10,7 @@ class NewCampaign extends Component {
     minimumContribution: '',
     name: '',
     description: '',
-    imageUrl: '',
+    imageUrl: 'https://picsum.photos/200',
     errorMessage: '',
     isLoading: false,
     isError: false,

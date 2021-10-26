@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "contractAddress": "0x7CE717539cD8419ed9c229220d465DDe17E7BA20",
+  "contractAddress": "0xDD8b4Cf3CE72c2F0018815CF3058d9890Bf933be",
   "scripts": {
     "test": "mocha",
     "dev": "next dev -p 3001"

@@ -23,10 +23,10 @@ class NewRequest extends Component {
   onSubmit = async (event) => {
     event.preventDefault();
     this.setState({ isLoading: true, isError: false });
-    console.log(this.props.address);
+    // console.log(this.props.address);
     const campaign = Campaign(this.props.address);
     const { description, amount, recipient } = this.state;
-    console.log(recipient);
+    // console.log(recipient);
     try {
       const accounts = await web3.eth.getAccounts();
       await campaign.methods

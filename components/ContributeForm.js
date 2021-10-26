@@ -22,9 +22,24 @@ class ContributeForm extends Component {
         from: accounts[0],
         value: web3.utils.toWei(this.state.value, 'ether'),
       });
+      campaign.events.Error().on('data', (event) => {
+        if (event.returnValues.message === 'Already a contributor') {
+          this.setState({
+            errorMessage: 'Thanks for contributing again!',
+            isError: true,
+          });
+          setTimeout(() => {
+            this.setState({ errorMessage: '', isError: false });
+          }, 5000);
+        }
+      });
+
       Router.replaceRoute(`/campaigns/${this.props.address}`);
     } catch (e) {
-      this.setState({ errorMessage: e.message, isError: true });
+      this.setState({ errorMessage: `${e}`, isError: true });
+      setTimeout(() => {
+        this.setState({ errorMessage: '', isError: false });
+      }, 5000);
     }
     this.setState({ isLoading: false });
   };
@@ -47,8 +62,9 @@ class ContributeForm extends Component {
             Contribute
           </Button>
           <Message
-            error='true'
-            header='Oops!'
+            hidden={!this.state.isError}
+            error={this.state.isError}
+            header=''
             content={this.state.errorMessage}
           ></Message>
         </Form>

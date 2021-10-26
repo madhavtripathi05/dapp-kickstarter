@@ -23,6 +23,7 @@ contract CampaignFactory {
 }
 
 contract Campaign {
+    event Error(string _message);
     struct Request {
         string description;
         uint256 value;
@@ -58,8 +59,12 @@ contract Campaign {
 
     function contribute() public payable {
         require(msg.value >= minimumContribution);
-        approvers[msg.sender] = true;
-        approversCount++;
+        if (approvers[msg.sender] == false) {
+            approvers[msg.sender] = true;
+            approversCount++;
+        } else {
+            emit Error("Already a contributor");
+        }
     }
 
     function createRequest(
@@ -88,7 +93,7 @@ contract Campaign {
     function finalizeRequest(uint256 requestId) public restricted {
         Request storage currentRequest = requests[requestId];
         require(!currentRequest.isComplete);
-        require(currentRequest.approvalCount >= (approversCount / 2));
+        require(currentRequest.approvalCount > (approversCount / 2));
         currentRequest.recipient.transfer(currentRequest.value);
         currentRequest.isComplete = true;
     }

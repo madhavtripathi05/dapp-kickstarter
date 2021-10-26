@@ -66,7 +66,7 @@ class CampaignShow extends Component {
   render() {
     return (
       <Layout>
-        <img src={this.props.imageUrl} alt='' />
+        {/* <img src={this.props.imageUrl} alt='' /> */}
         <h3>Campaign Details</h3>
         <Grid>
           <Grid.Row>
